@@ -1,2 +1,6 @@
 /.env
 /vosk-model-small-en-us-0.15.zip
+
+# Python bytecode and cache directories
+__pycache__/
+*.py[cod]

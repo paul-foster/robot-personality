@@ -14,6 +14,14 @@ Run text mode with:
 
 Ask a question, then use `clear conversation` to reset context or `quit` to exit. Ollama must be installed, running locally, and have the configured model available.
 
+For demonstrations in noisy environments, use text input with spoken responses:
+
+```bash
+.venv/bin/python robot_personality.py --text-speech
+```
+
+This mode does not use the microphone. Type questions at the terminal and hear each response through the configured local speech backend.
+
 List available microphone and audio input devices with:
 
 ```bash

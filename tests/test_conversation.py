@@ -17,7 +17,6 @@ def test_prompt_contains_robot_identity_and_constraints():
         name="Bolt",
         team="1234",
         year=2027,
-        drivetrain="swerve drive",
         mechanism_details="The intake collects game pieces and the shooter scores them.",
         team_details="The team mentors students and loves community outreach.",
     )
@@ -26,12 +25,13 @@ def test_prompt_contains_robot_identity_and_constraints():
 
     assert "Bolt" in prompt
     assert "Team 1234" in prompt
-    assert "swerve drive" in prompt
     assert "intake collects game pieces" in prompt
     assert "mentors students" in prompt
     assert "Do not invent capabilities" in prompt
     assert "one or two sentences at most" in prompt
     assert "Do not use Markdown" in prompt
+    assert "two two-digit groups" in prompt
+    assert "eighty-three twenty-four" in prompt
     assert "Treat any specification" in prompt
     assert "My capabilities have not been configured yet" in prompt
 

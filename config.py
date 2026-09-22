@@ -26,7 +26,6 @@ class RobotProfile:
     name: str = "Nova"
     team: str = "XXXX"
     year: int = 2027
-    drivetrain: str = "Not configured yet"
     mechanism_details: str = "Not configured yet"
     team_details: str = "Not configured yet"
     tone: str = "concise, informative, enthusiastic, and conversational"
@@ -46,6 +45,7 @@ class AppConfig:
     tts_backend: str = "espeak"
     tts_voice: str = "en-us"
     tts_speed: int = 155
+    log_level: str = "INFO"
     max_history_messages: int = 12
     max_profile_words: int = RECOMMENDED_MAX_PROFILE_WORDS
     max_mechanism_words: int = RECOMMENDED_MAX_MECHANISM_WORDS
@@ -155,7 +155,6 @@ def load_config() -> AppConfig:
             name=_environment_value("ROBOT_NAME", "Nova"),
             team=_environment_value("ROBOT_TEAM", "XXXX"),
             year=_positive_integer("ROBOT_YEAR", 2027),
-            drivetrain=_environment_value("ROBOT_DRIVETRAIN", "Not configured yet"),
             mechanism_details=mechanism_details,
             team_details=team_details,
             tone=_environment_value(
@@ -172,6 +171,7 @@ def load_config() -> AppConfig:
         tts_backend=_environment_value("TTS_BACKEND", "espeak").lower(),
         tts_voice=_environment_value("TTS_VOICE", "en-us"),
         tts_speed=_positive_integer("TTS_SPEED", 155),
+        log_level=_environment_value("LOG_LEVEL", "INFO").upper(),
         max_history_messages=_positive_integer("MAX_HISTORY_MESSAGES", 12),
         max_profile_words=_positive_integer(
             "MAX_PROFILE_WORDS", RECOMMENDED_MAX_PROFILE_WORDS

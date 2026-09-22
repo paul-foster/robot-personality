@@ -8,6 +8,14 @@ class FakeLLM:
         return "I am ready to help."
 
 
+class FakeSpeechOutput:
+    def __init__(self):
+        self.responses = []
+
+    def speak(self, text):
+        self.responses.append(text)
+
+
 def test_text_mode_handles_clear_and_exit_commands():
     conversation = ConversationManager(RobotProfile())
     inputs = iter(["hello", "clear conversation", "quit"])
@@ -20,3 +28,22 @@ def test_text_mode_handles_clear_and_exit_commands():
     assert "Conversation cleared." in output
     assert output[-1] == "Goodbye."
     assert conversation.history_length == 0
+
+
+def test_text_mode_can_speak_responses():
+    conversation = ConversationManager(RobotProfile())
+    speech = FakeSpeechOutput()
+    inputs = iter(["hello", "quit"])
+    output = []
+
+    result = run_text_mode(
+        conversation,
+        FakeLLM(),
+        input_fn=lambda _: next(inputs),
+        output_fn=output.append,
+        speech_output=speech,
+    )
+
+    assert result == 0
+    assert speech.responses == ["I am ready to help."]
+    assert "text-to-speech mode" in output[0]

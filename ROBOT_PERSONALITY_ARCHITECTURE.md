@@ -83,7 +83,7 @@ The robot's identity is configuration-driven rather than hard-coded into the app
 - Robot name.
 - FRC team number.
 - Competition year.
-- Drivetrain and mechanisms.
+- Mechanisms, including any relevant drivetrain details.
 - A markdown mechanism profile loaded from `ROBOT_MECHANISMS`.
 - A markdown team profile loaded from `ROBOT_TEAM_PROFILE`.
 - Known capabilities and limitations.
@@ -118,6 +118,18 @@ Example:
 
 ```bash
 .venv/bin/python robot_personality.py --text
+```
+
+### Text-to-speech demonstration mode
+
+Text-to-speech mode accepts typed questions and speaks responses through the configured
+local speech backend. It does not initialize the microphone, making it useful for
+demonstrations in noisy environments.
+
+Example:
+
+```bash
+.venv/bin/python robot_personality.py --text-speech
 ```
 
 ### Voice mode
@@ -228,32 +240,46 @@ Acceptance criteria:
 
 ### Phase 4: Local speech output
 
-1. Implement the `SpeechOutput` interface.
-2. Add the `espeak-ng` backend using argument lists with `subprocess.run`.
-3. Add configurable voice and speaking rate.
-4. Keep speech execution synchronous initially so responses cannot overlap.
-5. Define the Piper backend interface without making Piper a first-milestone dependency.
+1. Implement the `SpeechOutput` interface and synchronous `EspeakOutput` backend.
+2. Invoke `espeak-ng` with a safe argument list, configured voice, and speaking rate.
+3. Translate missing executables, invalid settings, process-start failures, and non-zero
+   exits into actionable `AudioOutputError` messages.
+4. Keep speech synchronous so responses cannot overlap, and leave a clear Piper backend
+   boundary without adding Piper as a dependency.
+5. Add automated tests for safe arguments, empty text, backend selection, and speech
+   sequencing; verify voice, volume, latency, and speaker recovery on the Raspberry Pi.
 
 Acceptance criteria:
 
-- A generated response is spoken locally.
-- Quotes and punctuation cannot become shell commands.
-- Missing `espeak-ng` is reported clearly.
-- Speech output completes before the next microphone utterance is accepted, preventing overlapping responses.
+- A generated response is spoken locally through the configured `espeak-ng` voice and
+  speaking rate.
+- Quotes, punctuation, whitespace, and shell metacharacters cannot become shell commands.
+- Empty responses are skipped and audio failures produce clear errors.
+- Speech completes before the next microphone utterance is accepted.
+- Automated tests cover the output boundary without requiring audio hardware or Piper.
 
 ### Phase 5: Integrated voice loop
 
 1. Connect Vosk, conversation management, Ollama, and speech output.
-2. Add explicit states: `idle`, `listening`, `thinking`, `speaking`, and `error`.
-3. Add configurable logging without logging sensitive audio content.
-4. Add graceful shutdown for keyboard interruption and device errors.
-5. Run the complete path on WSL where hardware permits, then on the Raspberry Pi.
+2. Track explicit states: `idle`, `listening`, `thinking`, `speaking`, and `error`, and
+   expose state changes to a future display adapter without coupling the voice loop to UI.
+3. Add configurable logging through `LOG_LEVEL`; log lifecycle events and summarized
+   failures only, never raw audio or full transcripts.
+4. Keep LLM and speech failures recoverable so the loop can listen for another question;
+   handle microphone failures and `Ctrl+C` with a clean operator-facing shutdown.
+5. Provide a microphone-free text-to-speech demonstration mode for noisy environments.
+6. Run the complete path on WSL where hardware permits, then verify multiple questions,
+   bounded follow-up context, and dependency recovery on the Raspberry Pi.
 
 Acceptance criteria:
 
-- The robot can complete multiple voice questions in one session.
+- The robot completes multiple voice questions in one session.
+- State transitions identify listening, thinking, speaking, idle, and error behavior.
 - Follow-up questions retain bounded context.
-- Every dependency failure returns the system to a recoverable state.
+- LLM and speech failures return to listening without corrupting conversation history.
+- Microphone failure and keyboard interruption end with a clean, actionable result.
+- Logs contain operational events without raw audio or sensitive conversation content.
+- Text-to-speech mode accepts typed questions and speaks responses without microphone access.
 
 ### Phase 6: Display and touch interaction
 
@@ -311,7 +337,6 @@ Before deployment, replace the placeholders with:
 - Actual FRC team number.
 - Robot name.
 - Competition year.
-- Drivetrain description.
 - Intake, shooter, arm, climber, and sensor details.
 - Desired personality tone.
 - Final Ollama model after Raspberry Pi performance testing.

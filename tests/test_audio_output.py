@@ -48,6 +48,11 @@ def test_missing_espeak_is_reported():
         EspeakOutput(executable_lookup=lambda _: None)
 
 
+def test_non_positive_speed_is_rejected():
+    with pytest.raises(AudioOutputError, match="greater than zero"):
+        EspeakOutput(speed=0, executable_lookup=lambda _: "/usr/bin/espeak-ng")
+
+
 def test_espeak_process_failure_is_translated():
     def failing_runner(command, check):
         raise subprocess.CalledProcessError(1, command)
@@ -61,6 +66,19 @@ def test_espeak_process_failure_is_translated():
         speaker.speak("hello")
 
 
+def test_espeak_start_failure_is_translated():
+    def failing_runner(command, check):
+        raise OSError("permission denied")
+
+    speaker = EspeakOutput(
+        executable_lookup=lambda _: "/usr/bin/espeak-ng",
+        runner=failing_runner,
+    )
+
+    with pytest.raises(AudioOutputError, match="Could not start espeak-ng"):
+        speaker.speak("hello")
+
+
 def test_piper_boundary_is_explicit():
     with pytest.raises(AudioOutputError, match="not implemented"):
         PiperOutput().speak("hello")
@@ -69,3 +87,9 @@ def test_piper_boundary_is_explicit():
 def test_unknown_backend_is_rejected():
     with pytest.raises(AudioOutputError, match="Unsupported"):
         create_speech_output("unknown", "en-us", 155)
+
+
+def test_backend_name_is_normalized():
+    speaker = create_speech_output(" ESPEAK ", "en-us", 155)
+
+    assert isinstance(speaker, EspeakOutput)

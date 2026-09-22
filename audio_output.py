@@ -70,9 +70,10 @@ class PiperOutput(SpeechOutput):
 def create_speech_output(backend: str, voice: str, speed: int) -> SpeechOutput:
     """Create the configured speech backend."""
 
-    if backend == "espeak":
+    normalized_backend = backend.strip().lower()
+    if normalized_backend == "espeak":
         return EspeakOutput(voice=voice, speed=speed)
-    if backend == "piper":
+    if normalized_backend == "piper":
         return PiperOutput()
     raise AudioOutputError(f"Unsupported TTS backend: {backend!r}")
 
